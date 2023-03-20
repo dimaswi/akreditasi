@@ -1,0 +1,74 @@
+<?php
+
+namespace App\Http\Controllers\Backend;
+
+use App\Dokumen;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+
+class UploadController extends Controller
+{
+    public function index()
+    {
+        $bab = DB::table('bab')->select('bab')->get();
+
+        return view('backend.upload', compact('bab'));
+    }
+
+    public function ajaxEP(Request $request)
+    {
+        $bab = $_GET['bab'];
+
+        $EP = DB::table('ep')->where('bab', $bab)->select('elemen_penilaian')->orderBy('created_at', 'ASC')->get();
+
+        return $EP;
+    }
+
+    public function ajaxElemen(Request $request)
+    {
+        $bab = $_GET['bab'];
+        $ep = $_GET['ep'];
+
+        $data = DB::table('elemen_penilaian')->where('bab', $bab)->where('elemen_penilaian', $ep)->select('ep')->orderBy('ep')->get();
+
+        return $data;
+    }
+
+    public function ajaxUID(Request $request)
+    {
+        $ep = $_GET['ep'];
+
+        $data = DB::table('elemen_penilaian')->where('ep', $ep)->select('uid')->orderBy('uid')->get();
+
+        return $data;
+    }
+
+    public function simpanDokumen(Request $request)
+    {
+        $this->validate($request, [
+            'bab' => 'required',
+            'ep' => 'required',
+        ]);
+
+        $files = [];
+
+        if ($request->hasFile('filenames')) {
+            foreach ($request->file('filenames') as $file) {
+                $name = $file->getClientOriginalName();
+                $file->move(public_path('files'), $name);
+                // $files[] = $name;
+                $file = new Dokumen();
+                $file->bab = $request->bab;
+                $file->uid = $request->uid;
+                $file->elemen_penilaian = $request->ep;
+                $file->ep = $request->elemen;
+                $file->filenames = $name;
+                $file->jenis_dokumen = $request->jenis_dokumen;
+                $file->save();
+            }
+        }
+
+        return redirect('admin/upload')->withSuccess('File Berhasil Disimpan');
+    }
+}
