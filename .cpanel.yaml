@@ -1,0 +1,4 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/klib1432/public_html/
+    - /bin/cp -R /home/klib1432/repositories/akreditasi $DEPLOYPATH
